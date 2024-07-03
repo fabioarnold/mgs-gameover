@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MGS Game Over</title>
+    <style>
+      body {
+        margin: 0;
+        font-family: sans-serif;
+        color: white;
+        background-color: black;
+      }
+    </style>
+  </head>
+
+  <body>
+    <canvas id="canvas" width="1920" height="1344" style="width: 960px; height: 672px"></canvas>
+    <div>
+      <label for="frame">Frame:</label>
+      <input type="number" id="frame" value="135" min="0" max="136" step="1" />
+      <input type="range" id="frameSlider" value="135" min="0" max="136" step="1" />
+      <button id="play">Play</button>
+      <button id="downloadVideo">Download Video</button>
+    </div>
+
+    <script>
+      const canvas = document.getElementById("canvas");
+      const ctx = canvas.getContext("2d");
+      const inputFrame = document.getElementById("frame");
+      const inputFrameSlider = document.getElementById("frameSlider");
+      const buttonPlay = document.getElementById("play");
+      const buttonDownloadVideo = document.getElementById("downloadVideo");
+
+      function updateFrame(frame) {
+        inputFrame.value = frame;
+        inputFrameSlider.value = frame;
+        draw(frame);
+      }
+
+      let interval = null;
+      function togglePlayback() {
+        if (interval === null) {
+          buttonPlay.textContent = "Pause";
+          interval = setInterval(() => updateFrame((parseInt(inputFrame.value) + 1) % inputFrame.max), 1000 / 30);
+        } else {
+          clearInterval(interval);
+          interval = null;
+          buttonPlay.textContent = "Play";
+        }
+      }
+
+      function downloadVideo() {
+        const frames = inputFrame.max;
+        const fps = 30;
+        const delay = 1000 / fps;
+        const stream = canvas.captureStream(fps);
+        const mimeType = MediaRecorder.isTypeSupported("video/mp4") ? "video/mp4" : "video/webm";
+        const recorder = new MediaRecorder(stream, { mimeType });
+        const chunks = [];
+        recorder.ondataavailable = (e) => chunks.push(e.data);
+        recorder.onstop = () => {
+          const blob = new Blob(chunks, { type: mimeType });
+          const a = document.createElement("a");
+          a.download = "mgs-gameover." + mimeType.split("/")[1];
+          a.href = URL.createObjectURL(blob);
+          a.click();
+        };
+        recorder.start();
+        for (let i = 0; i < frames; i++) {
+          setTimeout(() => {
+            draw(i);
+            recorder.requestData();
+          }, i * delay);
+        }
+        setTimeout(() => {
+          recorder.stop();
+        }, frames * delay);
+      }
+
+      inputFrame.addEventListener("input", () => updateFrame(parseInt(inputFrame.value)));
+      inputFrameSlider.addEventListener("input", () => updateFrame(parseInt(inputFrameSlider.value)));
+      buttonPlay.addEventListener("click", togglePlayback);
+      buttonDownloadVideo.addEventListener("click", downloadVideo);
+
+      const lines = [
+        120, // table length
+        37,  88,  25,  104, 25,  104, 31,  121, 31,  121, 40,  121, 40,  121, 32,  135,
+        32,  135, 42,  135, 69,  88,  37,  88,  64,  96,  41,  96,  41,  96,  35,  104,
+        35,  104, 38,  113, 38,  113, 45,  113, 62,  100, 45,  100, 45,  100, 40,  108,
+        40,  108, 48,  108, 48,  108, 45,  113, 69,  88,  64,  96,  55,  121, 65,  121,
+        74,  88,  84,  88,  67,  100, 85,  100, 69,  96,  85,  96,  67,  100, 55,  121,
+        69,  96,  74,  88,  84,  88,  85,  96,  85,  100, 87,  121, 87,  121, 78,  121,
+        73,  108, 77,  108, 78,  121, 77,  108, 73,  108, 65,  121, 62,  100, 42,  135,
+        89,  121, 98,  121, 97,  88,  108, 88,  118, 88,  130, 88,  122, 121, 113, 121,
+        113, 121, 117, 104, 117, 104, 108, 121, 108, 121, 103, 121, 103, 121, 102, 104,
+        102, 104, 98,  121, 95,  96,  108, 96,  114, 96,  128, 96,  94,  100, 108, 100,
+        112, 100, 127, 100, 97,  88,  95,  96,  94,  100, 89,  121, 108, 88,  108, 96,
+        108, 100, 108, 108, 112, 100, 108, 108, 114, 96,  118, 88,  127, 100, 122, 121,
+        128, 96,  130, 88,  134, 88,  156, 88,  126, 121, 148, 121, 132, 96,  154, 96,
+        131, 100, 153, 100, 138, 107, 151, 107, 138, 107, 137, 113, 150, 113, 137, 113,
+        134, 88,  132, 96,  131, 100, 126, 121, 150, 113, 148, 121, 151, 107, 153, 100,
+        154, 96,  156, 88,  173, 121, 199, 121, 181, 88,  207, 88,  179, 96,  205, 96,
+        187, 100, 184, 113, 184, 113, 192, 113, 195, 100, 192, 113, 207, 88,  205, 96,
+        204, 100, 199, 121, 181, 88,  179, 96,  178, 100, 173, 121, 178, 100, 187, 100,
+        195, 100, 204, 100, 213, 121, 224, 121, 241, 88,  231, 88,  210, 88,  219, 88,
+        211, 96,  220, 96,  211, 100, 220, 100, 225, 100, 235, 100, 227, 96,  237, 96,
+        225, 100, 221, 108, 231, 88,  227, 96,  235, 100, 224, 121, 237, 96,  241, 88,
+        211, 100, 213, 121, 210, 88,  211, 96,  219, 88,  220, 96,  220, 100, 221, 108,
+        244, 88,  266, 88,  236, 121, 258, 121, 242, 96,  264, 96,  241, 100, 263, 100,
+        247, 113, 260, 113, 248, 108, 261, 108, 248, 108, 247, 113, 244, 88,  242, 96,
+        241, 100, 236, 121, 263, 100, 261, 108, 260, 113, 258, 121, 266, 88,  264, 96,
+        270, 88,  292, 88,  268, 96,  286, 96,  292, 88,  295, 97,  267, 100, 282, 100,
+        275, 107, 277, 107, 262, 121, 272, 121, 275, 107, 272, 121, 277, 107, 285, 135,
+        285, 135, 295, 135, 286, 106, 295, 135, 286, 106, 288, 106, 288, 106, 295, 97,
+        282, 100, 286, 96,  267, 100, 262, 121, 268, 96,  270, 88,  67,  100, 55,  121,
+        53,  125, 47,  135, 53,  125, 279, 125, 282, 135, 47,  135, 282, 135, 279, 125
+      ];
+
+      let directions = [];
+      for (let i = 1; i < lines.length; i += 4) {
+        let vx = lines[i + 2] - lines[i + 0];
+        let vy = lines[i + 3] - lines[i + 1];
+        const length = Math.sqrt(vx * vx + vy * vy);
+        vx /= length;
+        vy /= length;
+        directions.push({ vx, vy });
+      }
+
+      function drawLine(x0, y0, x1, y1, color0, color1) {
+        const gradient = ctx.createLinearGradient(x0, y0, x1, y1);
+        gradient.addColorStop(0, "rgb(0, " + color0 + ", " + color0 + ")");
+        gradient.addColorStop(1, "rgb(0, " + color1 + ", " + color1 + ")");
+        ctx.beginPath();
+        ctx.moveTo(x0, y0);
+        ctx.lineTo(x1, y1);
+        ctx.strokeStyle = gradient;
+        ctx.lineCap = "round";
+        ctx.stroke();
+      }
+
+      function drawBlueLightTriangle(x0, y0, x1, y1, x2, y2) {
+        const gradient = ctx.createLinearGradient(x0, y0, (x1 + x2) / 2, (y1 + y2) / 2);
+        gradient.addColorStop(0, "#08F");
+        gradient.addColorStop(1, "#000");
+        ctx.beginPath();
+        ctx.moveTo(x0, y0);
+        ctx.lineTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.closePath();
+        ctx.fillStyle = gradient;
+        ctx.fill();
+      }
+
+      function drawBlueLight(x0, y0, x1, y1, w, h) {
+        const cx = (x0 + x1) / 2;
+        const cy = (y0 + y1) / 2;
+        ctx.globalCompositeOperation = "lighter";
+        drawBlueLightTriangle(cx, cy, x1 - w, y1 - h, x0 - w, y0 - h);
+        drawBlueLightTriangle(cx, cy, x0 - w, y0 - h, x0 + w, y0 + h);
+        drawBlueLightTriangle(cx, cy, x1 - w, y1 - h, x1 + w, y1 + h);
+        drawBlueLightTriangle(cx, cy, x1 + w, y1 + h, x0 + w, y0 + h);
+        ctx.globalCompositeOperation = "source-over";
+      }
+
+      function draw(frame) {
+        ctx.resetTransform();
+        ctx.fillStyle = "#000";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        ctx.scale(6, 6);
+        ctx.translate(0.5, 0.5);
+
+        let count = lines[0];
+        let seq_anim = frame;
+        let i = 1; // lines
+        let j = 0; // directions
+        for (; count > 0 && seq_anim >= 0; i += 4, j++, seq_anim--, count--) {
+          let width = 0;
+          let height = 0;
+          if (seq_anim < 8) {
+            width = directions[j].vx * (512 >> seq_anim);
+            height = directions[j].vy * (512 >> seq_anim);
+            if (count % 4 == 2) {
+              width = -width;
+              height = -height;
+            }
+          }
+          let x0 = lines[i + 0] + width;
+          let y0 = lines[i + 1] + height;
+          let x1 = lines[i + 2] + width * 2;
+          let y1 = lines[i + 3] + height * 2;
+          let color0 = 255 - Math.abs(x0 - 160);
+          let color1 = 255 - Math.abs(x1 - 160);
+          if (seq_anim < 8) {
+            color0 = 255;
+            color1 = 255;
+          }
+          drawLine(x0, y0, x1, y1, color0, color1);
+
+          if (seq_anim >= 8 && seq_anim <= 13) {
+            width = -(directions[j].vy * (512 >> (seq_anim - 6)));
+            height = directions[j].vx * (512 >> (seq_anim - 6));
+            drawBlueLight(x0, y0, x1, y1, width, height);
+          }
+        }
+      }
+      draw(inputFrame.value);
+    </script>
+  </body>
+</html>
